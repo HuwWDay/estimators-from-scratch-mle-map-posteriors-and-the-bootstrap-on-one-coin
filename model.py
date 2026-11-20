@@ -98,3 +98,11 @@ def gaussian_mle(x):
     s2 = np.sum((x-mu)**2) 
     return float(mu), float(s2/N), float(s2/(N-1))
 
+# Step 6 - map_bernoulli
+def map_bernoulli(N1, N0, a, b):
+    # TODO: Return the mode of the posterior Beta(N1 + a, N0 + b) as a float.
+    #       Raise ValueError if N1 + a < 1, N0 + b < 1 or N1 + N0 + a + b <= 2.
+    if N1 + a < 1 or N0 + b < 1 or N1 + N0 + a + b <= 2:
+        raise ValueError
+    return (N1+a-1)/(N1+N0+a+b-2)
+
