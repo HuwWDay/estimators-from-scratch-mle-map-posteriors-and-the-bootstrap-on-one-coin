@@ -106,3 +106,13 @@ def map_bernoulli(N1, N0, a, b):
         raise ValueError
     return (N1+a-1)/(N1+N0+a+b-2)
 
+# Step 7 - log_loss
+import numpy as np
+
+
+def log_loss(p_heads, y):
+    # TODO: Average Bernoulli negative log likelihood (nats per flip) of the flips y under p_heads.
+    #       Reuse coin_counts and bernoulli_nll; return a Python float.
+    N1, N0 = coin_counts(y)
+    return bernoulli_nll(p_heads, N1, N0)/(N0+N1)
+
