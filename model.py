@@ -116,3 +116,43 @@ def log_loss(p_heads, y):
     N1, N0 = coin_counts(y)
     return bernoulli_nll(p_heads, N1, N0)/(N0+N1)
 
+# Step 8 - black_swan_risk
+import math
+import numpy as np
+
+
+def black_swan_risk(theta, n, n_future, n_rep, rng):
+    mle_inf_count = 0
+    mle_finite_losses = []
+    add_one_losses = []
+    oracle_losses = []
+
+    for _ in range(n_rep):
+        y = (rng.random(n) < theta).astype(int)
+        future = (rng.random(n_future) < theta).astype(int)
+
+        N1, N0 = coin_counts(y)
+
+        p_mle = N1 / n
+        p_add_one = map_bernoulli(N1, N0, 2, 2)
+
+        loss_mle = log_loss(p_mle, future)
+        if math.isinf(loss_mle):
+            mle_inf_count += 1
+        else:
+            mle_finite_losses.append(loss_mle)
+
+        add_one_losses.append(log_loss(p_add_one, future))
+        oracle_losses.append(log_loss(theta, future))
+
+    mle_loss_when_finite = (
+        float(np.mean(mle_finite_losses)) if mle_finite_losses else float("nan")
+    )
+
+    return {
+        "mle_infinite": float(mle_inf_count / n_rep),
+        "mle_loss_when_finite": mle_loss_when_finite,
+        "add_one_loss": float(np.mean(add_one_losses)),
+        "oracle_loss": float(np.mean(oracle_losses)),
+    }
+
