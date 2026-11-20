@@ -83,3 +83,18 @@ def categorical_mle(y, K):
     probs = counts / y.size
     return counts, probs
 
+# Step 5 - gaussian_mle
+import numpy as np
+
+
+def gaussian_mle(x):
+    # TODO: Raise ValueError for fewer than 2 readings. From the sufficient statistics
+    #       mean(x) and mean(x**2), return (mu, var_mle (divide by N), var_unbiased (divide by N-1)).
+    x = np.asarray(x)
+    N = len(x)
+    if N < 2:
+        raise ValueError
+    mu = np.mean(x)
+    s2 = np.sum((x-mu)**2) 
+    return float(mu), float(s2/N), float(s2/(N-1))
+
