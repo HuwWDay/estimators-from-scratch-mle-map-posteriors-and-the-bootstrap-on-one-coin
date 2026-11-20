@@ -198,3 +198,15 @@ def beta_posterior(N1, N0, a, b):
         "prior_weight": float((a + b) / (a + b + N)),
     }
 
+# Step 11 - log_evidence
+import math
+
+
+def log_evidence(N1, N0, a, b, binomial=False):
+    # TODO: log B(a + N1, b + N0) - log B(a, b), plus log C(N, N1) when binomial=True.
+    out = log_beta(a+N1, b+N0) - log_beta(a, b)
+    if binomial:
+        return out + math.log(math.comb(N0+N1, N1))
+    else:
+        return out
+
