@@ -178,3 +178,23 @@ def beta_logpdf(theta, a, b):
     res = np.where(in_bounds, val, -np.inf)
     return float(res) if is_scalar else res
 
+# Step 10 - beta_posterior
+def beta_posterior(N1, N0, a, b):
+    a_ = a + N1
+    b_ = b + N0
+    N = N1 + N0
+
+    try:
+        mode = float(map_bernoulli(N1, N0, a, b))
+    except ValueError:
+        mode = None
+
+    return {
+        "a": float(a_),
+        "b": float(b_),
+        "mean": float(a_ / (a_ + b_)),
+        "mode": mode,
+        "var": float((a_ * b_) / ((a_ + b_) ** 2 * (a_ + b_ + 1))),
+        "prior_weight": float((a + b) / (a + b + N)),
+    }
+
