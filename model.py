@@ -36,3 +36,33 @@ def bernoulli_nll(theta, N1, N0):
     nll = -(term1 + term2)
     return float(nll) if is_scalar else nll
 
+# Step 3 - golden_section_min
+import math
+
+
+def golden_section_min(f, lo, hi, tol=1e-10):
+    a, b = float(lo), float(hi)
+    r = (math.sqrt(5) - 1) / 2
+
+    diff = r * (b - a)
+    c = b - diff
+    d = a + diff
+    fc = f(c)
+    fd = f(d)
+
+    while (b - a) >= tol:
+        if fc < fd:
+            b = d
+            d = c
+            fd = fc
+            c = b - r * (b - a)
+            fc = f(c)
+        else:
+            a = c
+            c = d
+            fc = fd
+            d = a + r * (b - a)
+            fd = f(d)
+
+    return float((a + b) / 2)
+
