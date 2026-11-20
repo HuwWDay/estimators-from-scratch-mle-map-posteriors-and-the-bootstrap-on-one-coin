@@ -66,3 +66,20 @@ def golden_section_min(f, lo, hi, tol=1e-10):
 
     return float((a + b) / 2)
 
+# Step 4 - categorical_mle
+import numpy as np
+
+
+def categorical_mle(y, K):
+    y = np.asarray(y)
+    if y.ndim != 1 or y.size == 0:
+        raise ValueError("y must be a non-empty 1-D array.")
+    if not np.issubdtype(y.dtype, np.integer):
+        raise ValueError("y must contain integer outcomes.")
+    if np.any((y < 0) | (y >= K)):
+        raise ValueError(f"All outcomes in y must be in 0..{K - 1}.")
+
+    counts = np.bincount(y, minlength=K)
+    probs = counts / y.size
+    return counts, probs
+
