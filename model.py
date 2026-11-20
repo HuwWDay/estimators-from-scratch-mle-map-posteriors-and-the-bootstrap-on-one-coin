@@ -21,3 +21,18 @@ def coin_counts(y):
     N0 = int(y.size - N1)
     return N1, N0
 
+# Step 2 - bernoulli_nll
+import numpy as np
+
+
+def bernoulli_nll(theta, N1, N0):
+    is_scalar = np.isscalar(theta)
+    theta = np.asarray(theta, dtype=float)
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        term1 = np.where(N1 == 0, 0.0, N1 * np.log(theta))
+        term2 = np.where(N0 == 0, 0.0, N0 * np.log(1.0 - theta))
+
+    nll = -(term1 + term2)
+    return float(nll) if is_scalar else nll
+
