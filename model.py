@@ -156,3 +156,25 @@ def black_swan_risk(theta, n, n_future, n_rep, rng):
         "oracle_loss": float(np.mean(oracle_losses)),
     }
 
+# Step 9 - beta_logpdf
+import math
+import numpy as np
+
+
+def log_beta(a, b):
+    return math.lgamma(a) + math.lgamma(b) - math.lgamma(a + b)
+
+
+def beta_logpdf(theta, a, b):
+    is_scalar = np.isscalar(theta)
+    t = np.asarray(theta, dtype=float)
+    in_bounds = (t >= 0.0) & (t <= 1.0)
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        term1 = np.where(a == 1, 0.0, (a - 1.0) * np.log(t))
+        term2 = np.where(b == 1, 0.0, (b - 1.0) * np.log(1.0 - t))
+        val = term1 + term2 - log_beta(a, b)
+
+    res = np.where(in_bounds, val, -np.inf)
+    return float(res) if is_scalar else res
+
