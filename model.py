@@ -210,3 +210,15 @@ def log_evidence(N1, N0, a, b, binomial=False):
     else:
         return out
 
+# Step 12 - sequential_predictive
+import numpy as np
+
+
+def sequential_predictive(y, a, b):
+    coin_counts(y)
+    y = np.asarray(y)
+
+    heads_before = np.concatenate(([0], np.cumsum(y[:-1])))
+    t = np.arange(y.size)
+    return (heads_before + a) / (t + a + b)
+
