@@ -368,3 +368,22 @@ def beta_quantile(p, a, b):
 
     return float(0.5 * (lo + hi))
 
+# Step 17 - credible_intervals
+def credible_intervals(a, b, mass=0.95):
+    tail = (1.0 - mass) / 2.0
+    central = (
+        float(beta_quantile(tail, a, b)),
+        float(beta_quantile(1.0 - tail, a, b)),
+    )
+
+    def width(q):
+        return beta_quantile(q + mass, a, b) - beta_quantile(q, a, b)
+
+    best_q = golden_section_min(width, 0.0, 1.0 - mass, tol=1e-9)
+    hdi = (
+        float(beta_quantile(best_q, a, b)),
+        float(beta_quantile(best_q + mass, a, b)),
+    )
+
+    return {"central": central, "hdi": hdi}
+
