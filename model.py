@@ -222,3 +222,149 @@ def sequential_predictive(y, a, b):
     t = np.arange(y.size)
     return (heads_before + a) / (t + a + b)
 
+# Step 13 - predictive_counts
+import math
+import numpy as np
+
+
+def predictive_counts(M, N1, N0, a, b):
+    a_ = a + N1
+    b_ = b + N0
+    theta_hat = map_bernoulli(N1, N0, a, b)
+
+    xs = np.arange(M + 1)
+    log_comb = np.array([
+        math.lgamma(M + 1) - math.lgamma(x + 1) - math.lgamma(M - x + 1)
+        for x in xs
+    ])
+
+    # Beta-binomial posterior predictive
+    log_bayes = np.array([
+        log_comb[x] + log_beta(x + a_, M - x + b_) - log_beta(a_, b_)
+        for x in xs
+    ])
+    bayes = np.exp(log_bayes)
+
+    # Binomial plug-in predictive (handling theta_hat = 0 or 1 cleanly)
+    if theta_hat == 0.0:
+        plugin = np.zeros(M + 1, dtype=float)
+        plugin[0] = 1.0
+    elif theta_hat == 1.0:
+        plugin = np.zeros(M + 1, dtype=float)
+        plugin[M] = 1.0
+    else:
+        log_plugin = log_comb + xs * math.log(theta_hat) + (M - xs) * math.log(1.0 - theta_hat)
+        plugin = np.exp(log_plugin)
+
+    return bayes, plugin
+
+# Step 14 - beta_cdf
+import math
+
+
+def _betacf(x, a, b, eps=1e-14, max_iter=1000):
+    """Evaluate the continued fraction for I_x(a, b) via modified Lentz's method."""
+    tiny = 1e-300
+    qab = a + b
+    qap = a + 1.0
+    qam = a - 1.0
+
+    c = 1.0
+    d = 1.0 - qab * x / qap
+    if abs(d) < tiny:
+        d = tiny
+    d = 1.0 / d
+    h = d
+
+    for m in range(1, max_iter + 1):
+        m2 = 2 * m
+        # Even step: d_{2m}
+        aa = m * (b - m) * x / ((qam + m2) * (a + m2))
+        d = 1.0 + aa * d
+        if abs(d) < tiny:
+            d = tiny
+        c = 1.0 + aa / c
+        if abs(c) < tiny:
+            c = tiny
+        d = 1.0 / d
+        h *= d * c
+
+        # Odd step: d_{2m+1}
+        aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2))
+        d = 1.0 + aa * d
+        if abs(d) < tiny:
+            d = tiny
+        c = 1.0 + aa / c
+        if abs(c) < tiny:
+            c = tiny
+        d = 1.0 / d
+        delta = d * c
+        h *= delta
+
+        if abs(delta - 1.0) < eps:
+            return h
+
+    raise RuntimeError(f"Continued fraction failed to converge for x={x}, a={a}, b={b}")
+
+
+def beta_cdf(x, a, b):
+    x = float(x)
+    a = float(a)
+    b = float(b)
+
+    if x <= 0.0:
+        return 0.0
+    if x >= 1.0:
+        return 1.0
+
+    # Front factor: x^a * (1 - x)^b / B(a, b), computed in log-space to prevent under/overflow
+    front = math.exp(a * math.log(x) + b * math.log1p(-x) - log_beta(a, b))
+
+    if x < (a + 1.0) / (a + b + 2.0):
+        return float(front * _betacf(x, a, b) / a)
+    else:
+        return float(1.0 - front * _betacf(1.0 - x, b, a) / b)
+
+# Step 15 - mixture_posterior
+import numpy as np
+
+
+def mixture_posterior(weights, components, N1, N0):
+    weights = np.asarray(weights, dtype=float)
+
+    with np.errstate(divide="ignore"):
+        log_w = np.log(weights)
+
+    log_ev = np.array(
+        [log_evidence(N1, N0, a_k, b_k) for a_k, b_k in components],
+        dtype=float,
+    )
+
+    log_unnorm = log_w + log_ev
+    max_log = np.max(log_unnorm)
+    log_norm = max_log + np.log(np.sum(np.exp(log_unnorm - max_log)))
+    post_weights = np.exp(log_unnorm - log_norm)
+
+    post_components = [(a_k + N1, b_k + N0) for a_k, b_k in components]
+    return post_weights, post_components
+
+# Step 16 - beta_quantile
+def beta_quantile(p, a, b):
+    p = float(p)
+    if p <= 0.0:
+        return 0.0
+    if p >= 1.0:
+        return 1.0
+
+    lo, hi = 0.0, 1.0
+    for _ in range(100):
+        if hi - lo < 1e-13:
+            break
+        mid = 0.5 * (lo + hi)
+        if beta_cdf(mid, a, b) < p:
+            lo = mid
+        else:
+            hi = mid
+
+    return float(0.5 * (lo + hi))
+
