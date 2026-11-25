@@ -387,3 +387,22 @@ def credible_intervals(a, b, mass=0.95):
 
     return {"central": central, "hdi": hdi}
 
+# Step 18 - hdi_from_samples
+import math
+import numpy as np
+
+
+def hdi_from_samples(samples, mass=0.95):
+    s = np.sort(np.asarray(samples, dtype=float))
+    if s.ndim != 1 or s.size == 0:
+        raise ValueError("samples must be a non-empty 1-D sequence.")
+
+    n = s.size
+    k = math.ceil(mass * n - 1e-9)
+    if k < 1 or k > n:
+        raise ValueError(f"Invalid window size k={k} for mass={mass} and n={n}.")
+
+    widths = s[k - 1 :] - s[: n - k + 1]
+    best_idx = int(np.argmin(widths))
+    return float(s[best_idx]), float(s[best_idx + k - 1])
+
