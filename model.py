@@ -423,3 +423,23 @@ def grid_posterior(N1, N0, a, b, K):
 
     return grid, probs
 
+# Step 20 - laplace_theta
+import math
+
+
+def laplace_theta(N1, N0, a, b):
+    if N1 + a <= 1 or N0 + b <= 1:
+        raise ValueError("Laplace approximation requires an interior mode (N1 + a > 1 and N0 + b > 1).")
+
+    mode = float(map_bernoulli(N1, N0, a, b))
+    alpha = N1 + a - 1.0
+    beta = N0 + b - 1.0
+
+    H = alpha / (mode ** 2) + beta / ((1.0 - mode) ** 2)
+    sd = H ** -0.5
+
+    energy = bernoulli_nll(mode, N1, N0) - beta_logpdf(mode, a, b)
+    log_Z = -energy + 0.5 * math.log(2.0 * math.pi) - 0.5 * math.log(H)
+
+    return float(mode), float(sd), float(log_Z)
+
