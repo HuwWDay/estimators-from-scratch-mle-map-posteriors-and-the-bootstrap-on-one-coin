@@ -406,3 +406,20 @@ def hdi_from_samples(samples, mass=0.95):
     best_idx = int(np.argmin(widths))
     return float(s[best_idx]), float(s[best_idx + k - 1])
 
+# Step 19 - grid_posterior
+import numpy as np
+
+
+def grid_posterior(N1, N0, a, b, K):
+    grid = np.linspace(0.0, 1.0, K)
+    log_post = -bernoulli_nll(grid, N1, N0) + beta_logpdf(grid, a, b)
+
+    max_log = np.max(log_post)
+    if np.isneginf(max_log):
+        probs = np.zeros(K, dtype=float)
+    else:
+        unnorm = np.exp(log_post - max_log)
+        probs = unnorm / np.sum(unnorm)
+
+    return grid, probs
+
