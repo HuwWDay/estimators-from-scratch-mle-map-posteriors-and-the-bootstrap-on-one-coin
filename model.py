@@ -443,3 +443,27 @@ def laplace_theta(N1, N0, a, b):
 
     return float(mode), float(sd), float(log_Z)
 
+# Step 21 - laplace_logit
+import math
+
+
+def laplace_logit(N1, N0, a, b):
+    a_ = float(N1 + a)
+    b_ = float(N0 + b)
+
+    alpha_mode = math.log(a_ / b_)
+    theta_hat = a_ / (a_ + b_)
+
+    H_alpha = (a_ * b_) / (a_ + b_)
+    sd = H_alpha ** -0.5
+
+    energy = (
+        bernoulli_nll(theta_hat, N1, N0)
+        - beta_logpdf(theta_hat, a, b)
+        - math.log(theta_hat)
+        - math.log(1.0 - theta_hat)
+    )
+    log_Z = -energy + 0.5 * math.log(2.0 * math.pi) - 0.5 * math.log(H_alpha)
+
+    return float(alpha_mode), float(sd), float(log_Z)
+
